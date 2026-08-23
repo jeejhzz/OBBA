@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#9BBF30">
   <title>OBBA - Oliveyoung Beauty Browser Assistant</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <!-- 외부 CDN 의존 없음: 폰트·스타일·아이콘 전부 저장소 안에 있다 -->
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link href="assets/fonts/pretendard/pretendard-dynamic-subset.css" rel="stylesheet">
   <link href="assets/css/obba.css" rel="stylesheet">
 </head>
 <body>
@@ -21,7 +21,7 @@
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-9 h-9 rounded-full bg-olive flex items-center justify-center text-white font-bold shadow-md shrink-0" aria-hidden="true">OB</div>
         <div class="min-w-0">
-          <h1 class="text-base font-bold text-gray-800 leading-tight truncate">OBBA <i class="fa-solid fa-leaf text-olive text-xs" aria-hidden="true"></i></h1>
+          <h1 class="text-base font-bold text-gray-800 leading-tight truncate">OBBA <span data-icon="leaf" data-icon-class="w-3.5 h-3.5 inline-block align-[-1px] text-olive"></span></h1>
           <button type="button" id="profile-chip" data-action="edit-profile"
                   class="text-[10px] text-gray-500 hover:text-olive border border-gray-200 rounded-full px-2 py-0.5 mt-0.5 truncate max-w-[140px]">
             피부타입 설정
@@ -32,12 +32,12 @@
       <div class="flex items-center gap-1 shrink-0">
         <button type="button" data-action="cart-open" aria-label="장바구니 열기"
                 class="relative w-9 h-9 rounded-full text-gray-500 hover:text-olive hover:bg-gray-50 transition-colors">
-          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <span data-icon="shopping-bag" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
           <span id="cart-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
         </button>
         <button type="button" data-action="restart" aria-label="대화 처음부터 다시하기"
                 class="w-9 h-9 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+          <span data-icon="rotate-cw" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
         </button>
       </div>
     </header>
@@ -60,7 +60,7 @@
              placeholder="예) 복합성인데 여행 갈 때 진정 제품">
       <button type="button" id="send-btn" aria-label="보내기"
               class="w-10 h-10 bg-olive text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#8AA82A] transition-colors shadow-sm">
-        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        <span data-icon="send" data-icon-class="w-[18px] h-[18px]"></span>
       </button>
     </footer>
 
@@ -70,7 +70,7 @@
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h2 class="text-sm font-bold text-gray-800">🛒 오빠가 담아준 리스트</h2>
         <button type="button" data-action="cart-close" aria-label="닫기" class="w-8 h-8 text-gray-400 hover:text-gray-600">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <span data-icon="x" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
         </button>
       </div>
       <div id="cart-sheet-body" class="flex-1 flex flex-col overflow-hidden"></div>
@@ -82,6 +82,7 @@
   <script src="assets/js/data/flows.js"></script>
   <script src="assets/js/core/store.js"></script>
   <script src="assets/js/core/engine.js"></script>
+  <script src="assets/js/ui/icons.js"></script>
   <script src="assets/js/ui/render.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

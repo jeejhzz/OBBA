@@ -5,10 +5,19 @@
 올리브영에는 제품이 너무 많다. OBBA는 "지금 나한테 필요한 거 3개"까지 좁혀주는 걸 목표로 한다.
 
 ```
-$ npx http-server -p 8137 .     # 또는 python3 -m http.server 8137
-$ open http://127.0.0.1:8137
+$ npm run serve          # http://127.0.0.1:8137
 ```
-빌드 도구 없이 정적 파일만으로 동작한다. (GitHub Pages에 그대로 올릴 수 있음)
+빌드 산출물(`assets/css/obba.css`)이 저장소에 커밋되어 있어서, **받아서 바로 열면 동작한다.**
+GitHub Pages에 그대로 올려도 되고, 외부 네트워크 없이 오프라인에서도 똑같이 뜬다.
+
+스타일을 고칠 때만 빌드가 필요하다.
+
+```
+$ npm install            # 최초 1회
+$ npm run build:css      # assets/css/obba.src.css → assets/css/obba.css
+$ npm run watch:css      # 작업 중에는 이걸로
+$ npm test               # 카탈로그 스키마 + 16조합 회귀 검사
+```
 
 ## 무엇을 하는가
 
@@ -27,15 +36,32 @@ $ open http://127.0.0.1:8137
 
 ```
 index.html                 화면 뼈대만. 로직 없음
-assets/css/obba.css        색·레이아웃·모션 (유틸리티는 Tailwind CDN)
+assets/css/obba.src.css    스타일 소스 (Tailwind v4 + 커스텀). ← 여기를 고친다
+assets/css/obba.css        빌드 산출물. 직접 고치지 말 것
+assets/fonts/pretendard/   Pretendard 가변 폰트 dynamic subset (SIL OFL)
 assets/js/
   data/catalog.js          상품 21종. 연동 어댑터가 채울 스키마의 로컬 구현체
   data/flows.js            상황/고민/피부타입/예산 축 + 큐레이션 16조합 + 자연어 사전
   core/store.js            프로필·장바구니 (localStorage, 실패해도 대화는 계속)
   core/engine.js           추천 엔진: 큐레이션 + 스코어링 하이브리드
+  ui/icons.js              아이콘 8종 인라인 SVG (Lucide, ISC)
   ui/render.js             HTML 빌더. 사용자 입력은 전부 esc() 통과
   app.js                   대화 컨트롤러 + 이벤트 위임
+tools/check-catalog.js     스키마·참조 무결성·추천 회귀 검사 (npm test)
 ```
+
+### 외부 의존성 없음
+
+폰트·스타일·아이콘을 전부 저장소 안에 넣었다. 런타임에 나가는 네트워크 요청은 **0건**이다.
+
+| | 이전 | 지금 |
+|---|---|---|
+| CSS | `cdn.tailwindcss.com` 런타임 JIT | 빌드된 20KB CSS |
+| 아이콘 | Font Awesome 전체 (~150KB webfont) | 인라인 SVG 8개 (2.3KB) |
+| 폰트 | jsDelivr → Pretendard static | 로컬 dynamic subset (필요한 청크만 다운로드) |
+
+부수 효과 하나: 브랜드 컬러를 Tailwind 테마(`--color-olive`)에 등록해서
+`ring-olive/50` 처럼 **CDN 시절엔 조용히 무효였던 클래스들이 이제 실제로 동작한다.**
 
 ### 추천이 만들어지는 방식
 
@@ -65,6 +91,4 @@ assets/js/
 ## 알려진 제약
 
 - 가격/할인율은 **하드코딩된 스냅샷**이라 실제 올리브영 판매가와 다를 수 있다. 실시간 가격은 연동 이후.
-- Tailwind·Font Awesome·Pretendard를 CDN에서 받는다. 오프라인이나 CDN 차단 환경에서는 레이아웃이 깨진다.
-  (로드맵 P1: 정적 파일로 내재화)
 - 자연어 인식은 형태소 분석 없이 키워드 부분 문자열 매칭이다. 사전에 없는 표현은 버튼 흐름으로 유도한다.

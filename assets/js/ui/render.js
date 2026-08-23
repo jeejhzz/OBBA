@@ -80,7 +80,7 @@ window.OBBA = window.OBBA || {};
             '</div>' +
             '<a href="' + esc(E.oliveyoungUrl(p)) + '" target="_blank" rel="noopener noreferrer" ' +
               'class="block text-center w-full py-2 bg-olive text-white text-[13px] font-bold rounded-lg hover:bg-[#8AA82A] transition-colors shadow-sm mb-2">' +
-              '<i class="fa-solid fa-arrow-up-right-from-square mr-1" aria-hidden="true"></i>올리브영에서 보기</a>' +
+              OBBA.icon('external-link', 'w-3.5 h-3.5 inline-block align-[-2px] mr-1') + '올리브영에서 보기</a>' +
             '<button type="button" data-action="add-cart" data-id="' + esc(p.id) + '" ' +
               'class="w-full py-2 bg-gray-900 text-white text-[13px] font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-sm">' +
               '장바구니 담기</button>' +
@@ -91,7 +91,9 @@ window.OBBA = window.OBBA || {};
 
   function productCarousel(rec, carouselId) {
     var note = rec.note
-      ? '<p class="pl-10 pr-4 mt-2 text-[11px] text-gray-500"><i class="fa-solid fa-wand-magic-sparkles text-olive mr-1" aria-hidden="true"></i>' + esc(rec.note) + '</p>'
+      ? '<p class="pl-10 pr-4 mt-2 text-[11px] text-gray-500">' +
+          OBBA.icon('sparkles', 'w-3.5 h-3.5 inline-block align-[-2px] mr-1 text-olive') +
+          esc(rec.note) + '</p>'
       : '';
     return note +
       '<div class="w-full mt-2 pl-10 pr-4 message-enter overflow-hidden">' +
@@ -140,7 +142,7 @@ window.OBBA = window.OBBA || {};
 
     if (!items.length) {
       return '<div class="p-8 text-center text-gray-500 text-sm">' +
-        '<i class="fa-regular fa-face-smile text-3xl text-gray-300 mb-3 block" aria-hidden="true"></i>' +
+        '<span class="block text-gray-300 mb-3">' + OBBA.icon('smile', 'w-9 h-9 mx-auto') + '</span>' +
         '아직 담은 게 없어!<br>추천 카드에서 마음에 드는 걸 담아봐.</div>';
     }
 
@@ -173,7 +175,7 @@ window.OBBA = window.OBBA || {};
           '<span>-' + esc(E.formatWon(totals.saved)) + '</span></div>' +
         '<a href="' + esc(searchAllUrl) + '" target="_blank" rel="noopener noreferrer" ' +
           'class="block text-center w-full py-3 bg-olive text-white text-sm font-bold rounded-xl mb-2">' +
-          '올리브영에서 이어서 담기 <i class="fa-solid fa-arrow-up-right-from-square ml-1" aria-hidden="true"></i></a>' +
+          '올리브영에서 이어서 담기' + OBBA.icon('external-link', 'w-3.5 h-3.5 inline-block align-[-2px] ml-1') + '</a>' +
         '<div class="flex gap-2">' +
           '<button type="button" data-action="cart-copy" class="flex-1 py-2.5 bg-gray-100 text-gray-700 text-[13px] font-bold rounded-xl">쇼핑 리스트 복사</button>' +
           '<button type="button" data-action="cart-clear" class="py-2.5 px-4 bg-gray-100 text-gray-500 text-[13px] font-bold rounded-xl">비우기</button>' +

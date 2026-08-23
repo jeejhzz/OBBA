@@ -1,0 +1,30 @@
+{
+  "name": "obba",
+  "version": "1.0.0",
+  "description": "올리브영 제품을 상황·고민별로 골라주는 모바일 대화형 뷰티 어시스턴트",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i assets/css/obba.src.css -o assets/css/obba.css --minify",
+    "watch:css": "tailwindcss -i assets/css/obba.src.css -o assets/css/obba.css --watch",
+    "serve": "http-server -p 8137 -c-1 .",
+    "test": "node tools/check-catalog.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeejhzz/OBBA.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jeejhzz/OBBA/issues"
+  },
+  "homepage": "https://github.com/jeejhzz/OBBA#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "lucide-static": "^1.33.0",
+    "pretendard": "^1.3.9",
+    "tailwindcss": "^4.3.3"
+  },
+  "private": true
+}

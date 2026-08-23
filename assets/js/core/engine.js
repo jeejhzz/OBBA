@@ -166,6 +166,9 @@ window.OBBA = window.OBBA || {};
       if (st && st.id !== 'unknown') bits.push(st.label.replace(/^\S+\s/, ''));
       var bg = budgetOf(profile.budget);
       if (bg && bg.max !== Infinity) bits.push(bg.short);
+      if (profile.texturePref) {
+        bits.push({ light: '가벼운 제형', medium: '중간 제형', rich: '쫀쫀한 제형' }[profile.texturePref]);
+      }
       if (bits.length) note = bits.join(' · ') + ' 기준으로 순서 조정함';
       // 예산 안에 드는 후보가 없으면 솔직하게 알린다
       if (bg && bg.max !== Infinity && affordable.length === 0) {
@@ -194,8 +197,8 @@ window.OBBA = window.OBBA || {};
     if (st && st.id !== 'unknown') {
       return '🙋‍♂️ <b>오빠의 맞춤 결론:</b><br>' +
         st.label.replace(/^\S+\s/, '') + ' 피부는 ' + st.hint + '.<br>' +
-        '그래서 지금 조합에선 <b>' + top.brand + ' ' + top.name.split(' ')[0] + '</b> 쪽이 더 잘 맞아. ' +
-        second.brand + '는 ' + (second.target.split(',')[0]) + ' 상황에 더 어울려!';
+        '그래서 지금은 <b>' + top.brand + ' ' + stepMeta(top.step).label + '</b> 쪽이 더 잘 맞아. ' +
+        second.brand + ' ' + stepMeta(second.step).label + '은 ' + second.target.split(',')[0] + ' 쪽에 더 어울려!';
     }
     return '🙋‍♂️ <b>오빠의 결론:</b><br>' +
       '평소 피부가 <b>[' + top.target.split(',')[0] + ']</b> 쪽이면 ' + top.brand + ', ' +
