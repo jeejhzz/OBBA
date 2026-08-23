@@ -24,6 +24,12 @@ window.OBBA = window.OBBA || {};
     } catch (e) { /* 저장 실패해도 대화는 계속되어야 한다 */ }
   }
 
+  /* 못 알아들은 말 기록 —
+     실제로 사람들이 어떻게 말하는지가 사전을 넓히는 가장 정확한 재료다.
+     기기 안에만 남고 어디로도 전송되지 않는다. */
+  var MISS_KEY = 'obba.misses.v1';
+  var MISS_LIMIT = 30;
+
   var listeners = [];
 
   var Store = {
@@ -39,6 +45,29 @@ window.OBBA = window.OBBA || {};
     clearProfile: function () {
       write(Object.assign({}, EMPTY));
       listeners.forEach(function (fn) { fn(); });
+    },
+
+    logMiss: function (text) {
+      var clean = String(text || '').trim().slice(0, 120);
+      if (!clean) return;
+      try {
+        var list = JSON.parse(window.localStorage.getItem(MISS_KEY) || '[]');
+        if (!Array.isArray(list)) list = [];
+        if (list.length && list[list.length - 1].text === clean) return;   // 같은 말 연속 저장 방지
+        list.push({ text: clean, at: Date.now() });
+        window.localStorage.setItem(MISS_KEY, JSON.stringify(list.slice(-MISS_LIMIT)));
+      } catch (e) { /* 저장 못 해도 그만 */ }
+    },
+
+    getMisses: function () {
+      try {
+        var list = JSON.parse(window.localStorage.getItem(MISS_KEY) || '[]');
+        return Array.isArray(list) ? list : [];
+      } catch (e) { return []; }
+    },
+
+    clearMisses: function () {
+      try { window.localStorage.removeItem(MISS_KEY); } catch (e) { /* 무시 */ }
     },
 
     subscribe: function (fn) {

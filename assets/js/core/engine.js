@@ -222,51 +222,138 @@ window.OBBA = window.OBBA || {};
     return String(text == null ? '' : text).toLowerCase().replace(/\s+/g, '');
   }
 
+  /* 한글 자모 분해 — 오타를 견디기 위해.
+     "트러블"과 "트러불"은 글자로 보면 완전히 다르지만,
+     자모로 풀면 ㅌㅡㄹㅓㅂㅡㄹ / ㅌㅡㄹㅓㅂㅜㄹ 로 딱 한 개만 다르다. */
+  var CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  var JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+  var JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+  function toJamo(str) {
+    var out = '';
+    for (var i = 0; i < str.length; i++) {
+      var code = str.charCodeAt(i) - 0xac00;
+      if (code >= 0 && code < 11172) {
+        out += CHO[Math.floor(code / 588)] + JUNG[Math.floor((code % 588) / 28)] + JONG[code % 28];
+      } else {
+        out += str.charAt(i);
+      }
+    }
+    return out;
+  }
+
+  /** 두 문자열이 몇 글자나 다른지 (max 를 넘으면 조기 중단) */
+  function editDistance(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var prev = [], cur = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur[0] = i;
+      var rowMin = cur[0];
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(
+          prev[j] + 1,
+          cur[j - 1] + 1,
+          prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1)
+        );
+        if (cur[j] < rowMin) rowMin = cur[j];
+      }
+      if (rowMin > max) return max + 1;
+      prev = cur.slice();
+    }
+    return prev[b.length];
+  }
+
+  /**
+   * 오타를 감안한 매칭. 입력에서 키워드와 길이가 비슷한 구간들을 훑어
+   * 자모가 몇 개나 다른지 본다. 두 글자 이하 단어는 우연히 걸리기 쉬워서 제외한다.
+   * @returns 0 = 전혀 다름, 1 = 오타 수준(거의 확실), 2 = 비슷함(되물어볼 만함)
+   */
+  function fuzzyDistance(norm, kw) {
+    if (kw.length < 3) return 0;
+    var target = toJamo(kw);
+    var best = 3;
+    for (var len = kw.length - 1; len <= kw.length + 1; len++) {
+      if (len < 2) continue;
+      for (var i = 0; i + len <= norm.length; i++) {
+        var d = editDistance(toJamo(norm.substr(i, len)), target, 2);
+        if (d < best) best = d;
+        if (best <= 1) return best === 0 ? 1 : 1;
+      }
+    }
+    return best <= 2 ? 2 : 0;
+  }
+
   function wordOf(kw) { return Array.isArray(kw) ? kw[0] : kw; }
   function weightOf(kw) { return Array.isArray(kw) ? kw[1] : kw.length; }
 
-  var MIN_SCORE = 2;   // 한 글자짜리 우연한 일치로는 결론내지 않는다
+  var MIN_SCORE = 2;       // 한 글자짜리 우연한 일치로는 결론내지 않는다
+  var FUZZY_NEAR = 0.7;    // 오타 한 글자 수준 — 확실한 일치보다 약간 약하게
+  var FUZZY_FAR = 0.35;    // 그보다 더 다름 — 혼자서는 결론에 못 미치고 '되물어볼 후보'가 된다
 
-  /** 한 축(상황/고민/...)에서 점수가 가장 높은 후보를 고른다 */
+  /**
+   * 한 축(상황/고민/...)에서 점수가 가장 높은 후보를 고른다.
+   * @returns {{best, near}} best = 확신하는 답, near = 확신은 못 하지만 되물어볼 만한 후보
+   */
   function matchAxis(norm, dict) {
-    var best = null;
+    var ranked = [];
     Object.keys(dict).forEach(function (id) {
       var score = 0;
       var hits = [];
       dict[id].forEach(function (kw) {
         var w = wordOf(kw);
-        if (norm.indexOf(w) !== -1) { score += weightOf(kw); hits.push(w); }
+        if (norm.indexOf(w) !== -1) {
+          score += weightOf(kw);
+          hits.push(w);
+          return;
+        }
+        var d = fuzzyDistance(norm, w);
+        if (d === 1) {
+          score += weightOf(kw) * FUZZY_NEAR;
+          hits.push(w + '(오타?)');
+        } else if (d === 2) {
+          score += weightOf(kw) * FUZZY_FAR;
+          hits.push(w + '(비슷?)');
+        }
       });
-      if (score >= MIN_SCORE && (!best || score > best.score)) {
-        best = { id: id, score: score, hits: hits };
-      }
+      if (score > 0) ranked.push({ id: id, score: score, hits: hits });
     });
-    return best;
+
+    ranked.sort(function (a, b) { return b.score - a.score; });
+    var top = ranked[0];
+    if (!top) return { best: null, near: null };
+    return top.score >= MIN_SCORE ? { best: top, near: null } : { best: null, near: top };
   }
 
   /**
    * 자연어 한 줄에서 상황/고민/피부타입/예산을 뽑아낸다.
-   * @returns {{situationId, concernId, skinTypeId, budgetId, hits, understood}}
-   *   hits       축별로 실제 걸린 단어들 (왜 그렇게 알아들었는지 설명하거나 디버깅할 때)
-   *   understood 하나라도 알아들었는지
+   * @returns {{situationId, concernId, skinTypeId, budgetId, hits, understood, suggestions}}
+   *   hits        축별로 실제 걸린 단어들 (왜 그렇게 알아들었는지 설명할 때)
+   *   understood  하나라도 확신을 갖고 알아들었는지
+   *   suggestions 확신은 못 하지만 되물어볼 만한 후보 [{axis, id}]
    */
   function parse(text) {
     var norm = normalize(text);
     var out = {
       situationId: null, concernId: null, skinTypeId: null, budgetId: null,
-      hits: {}, understood: false
+      hits: {}, understood: false, suggestions: []
     };
     if (!norm) return out;
 
     ['situation', 'concern', 'skinType', 'budget'].forEach(function (axis) {
       var m = matchAxis(norm, OBBA.KEYWORDS[axis]);
-      if (m) {
-        out[axis + 'Id'] = m.id;
-        out.hits[axis] = m.hits;
+      if (m.best) {
+        out[axis + 'Id'] = m.best.id;
+        out.hits[axis] = m.best.hits;
+      } else if (m.near) {
+        out.suggestions.push({ axis: axis, id: m.near.id, score: m.near.score });
       }
     });
 
     out.understood = Boolean(out.situationId || out.concernId || out.skinTypeId || out.budgetId);
+    // 확신한 게 있으면 애매한 후보는 굳이 되묻지 않는다
+    if (out.understood) out.suggestions = [];
+    out.suggestions.sort(function (a, b) { return b.score - a.score; });
     return out;
   }
 

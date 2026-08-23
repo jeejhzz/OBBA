@@ -8,7 +8,7 @@
  *
  * 앱 파일이 바뀌면 CACHE 버전을 올린다 (그래야 새 파일을 받아온다).
  */
-const CACHE = 'obba-v3';
+const CACHE = 'obba-v4';
 
 // 첫 실행에 반드시 필요한 것만. 나머지는 쓰면서 캐시에 쌓인다.
 const CORE = [

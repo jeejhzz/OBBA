@@ -14,7 +14,7 @@
   var sendBtn = document.getElementById('send-btn');
   var profileChip = document.getElementById('profile-chip');
 
-  var state = { step: 'situation', situationId: null, concernId: null, lastRec: null };
+  var state = { step: 'situation', situationId: null, concernId: null, lastRec: null, pendingMiss: null };
   var quickReplyItems = [];
   var quickReplyHandler = null;
 
@@ -75,7 +75,7 @@
 
   function start() {
     chat.innerHTML = '';
-    state = { step: 'situation', situationId: null, concernId: null, lastRec: null };
+    state = { step: 'situation', situationId: null, concernId: null, lastRec: null, pendingMiss: null };
     var label = profileLabel();
 
     var greeting = '안녕! 올리브영 뷰티 어시스턴트 <b>OBBA(오빠)</b>야 😎<br>' +
@@ -221,6 +221,70 @@
     return bits.length ? R.esc(bits.join(' · ')) + ' 체크했어.' : '';
   }
 
+  var AXIS_LIST = {
+    situation: function () { return OBBA.SITUATIONS; },
+    concern:   function () { return OBBA.CONCERNS; },
+    skinType:  function () { return OBBA.SKIN_TYPES; },
+    budget:    function () { return OBBA.BUDGETS; }
+  };
+
+  /** 확신은 못 했지만 짚이는 후보를 "혹시 이거야?" 버튼으로 만든다 */
+  function suggestionItems(suggestions) {
+    return suggestions.slice(0, 2).map(function (sug) {
+      var list = AXIS_LIST[sug.axis] ? AXIS_LIST[sug.axis]() : [];
+      var found = list.find(function (i) { return i.id === sug.id; });
+      if (!found) return null;
+      return { id: 'sug:' + sug.axis + ':' + sug.id, label: found.label, axis: sug.axis, target: found };
+    }).filter(Boolean);
+  }
+
+  function onSuggestionPick(item) {
+    if (item.id === 'no') {
+      userSay(item.label);
+      // 되물었는데 아니라고 하면 결국 못 알아들은 것 — 사전을 넓힐 재료로 남긴다
+      Store.logMiss(state.pendingMiss);
+      return botSay('그럼 아래에서 골라줄래?', 400).then(function () {
+        if (state.situationId) { state.step = 'concern'; setQuickReplies(OBBA.CONCERNS, onConcern); }
+        else { state.step = 'situation'; setQuickReplies(OBBA.SITUATIONS, onSituation); }
+      });
+    }
+    userSay(item.label);
+    if (item.axis === 'concern') return onConcern(item.target, { silent: true });
+    if (item.axis === 'situation') return onSituation(item.target, { silent: true });
+    if (item.axis === 'skinType') return onSkinType(item.target, { silent: true });
+    if (item.axis === 'budget') return onBudget(item.target);
+    return start();
+  }
+
+  /** 못 알아들은 말 모아보기 (사전을 넓힐 재료) */
+  function showMisses() {
+    var misses = Store.getMisses();
+    if (!misses.length) {
+      return botSay('아직 못 알아들은 말이 없어. 잘하고 있다는 뜻이지 😎', 400)
+        .then(function () { setQuickReplies([{ id: 'reset', label: '🔄 처음부터 다시하기' }], function () { start(); }); });
+    }
+    var list = misses.slice(-15).reverse().map(function (m) {
+      var d = new Date(m.at);
+      return '· ' + R.esc(m.text) + ' <span class="text-gray-400 text-[11px]">(' +
+        (d.getMonth() + 1) + '/' + d.getDate() + ')</span>';
+    }).join('<br>');
+    return botSay('내가 못 알아들었던 말 ' + misses.length + '개야. 이걸 개발자한테 보여주면 사전을 넓힐 수 있어.<br><br>' +
+      list, 400)
+      .then(function () {
+        setQuickReplies([
+          { id: 'clear', label: '🗑 기록 지우기' },
+          { id: 'reset', label: '🔄 처음부터 다시하기' }
+        ], function (item) {
+          if (item.id === 'clear') {
+            Store.clearMisses();
+            return botSay('기록 지웠어!', 300)
+              .then(function () { setQuickReplies([{ id: 'reset', label: '🔄 처음부터 다시하기' }], function () { start(); }); });
+          }
+          return start();
+        });
+      });
+  }
+
   function labelOf(list, id) {
     var found = list.find(function (i) { return i.id === id; });
     return found ? found.label.replace(/^\S+\s/, '') : '';
@@ -232,6 +296,11 @@
     input.value = '';
     userSay(text);
     clearQuickReplies();
+
+    if (/^(기록|로그|못알아들은|안된말)/.test(text.replace(/\s+/g, ''))) {
+      showMisses();
+      return;
+    }
 
     var parsed = E.parse(text);
 
@@ -257,7 +326,8 @@
     }
 
     // 2) 고민만 알아들었다 → 상황 하나만 더 물어본다
-    if (state.concernId && !state.situationId) {
+    //    (이번 입력이 아무것도 못 알아들은 경우는 아래 되묻기/기록으로 보낸다)
+    if (parsed.understood && state.concernId && !state.situationId) {
       var concernName = labelOf(OBBA.CONCERNS, state.concernId);
       botSay('<b>' + R.esc(concernName) + '</b> 얘기구나, 알겠어. ' + (ack ? ack + ' ' : '') +
         '<br>언제 쓸 건지만 알려주면 바로 골라줄게!', 600)
@@ -269,7 +339,7 @@
     }
 
     // 3) 상황만 알아들었다 → 고민 하나만 더 물어본다
-    if (state.situationId && !state.concernId) {
+    if (parsed.understood && state.situationId && !state.concernId) {
       var situation = OBBA.SITUATIONS.find(function (s) { return s.id === state.situationId; });
       botSay(R.esc(situation ? situation.reply : '') + (ack ? ' ' + ack : '') +
         '<br>그럼 <b>제일 신경 쓰이는 피부 고민</b> 하나만 골라봐.', 600)
@@ -301,7 +371,18 @@
       return;
     }
 
-    // 6) 하나도 못 알아들었다 — 무엇을 말하면 되는지 예시로 알려준다
+    // 6) 확신은 못 했지만 짚이는 게 있으면 되묻는다 (막다른 길 대신 한 번의 탭으로)
+    var guesses = suggestionItems(parsed.suggestions);
+    if (guesses.length) {
+      state.pendingMiss = text;
+      botSay('음... 혹시 이 얘기야?', 500).then(function () {
+        setQuickReplies(guesses.concat([{ id: 'no', label: '🙅 아니야' }]), onSuggestionPick);
+      });
+      return;
+    }
+
+    // 7) 하나도 못 알아들었다 — 기록해두고(사전을 넓힐 재료) 예시를 알려준다
+    Store.logMiss(text);
     var askConcern = Boolean(state.situationId);
     botSay('음, 그 말은 아직 못 알아듣겠어 😅<br>' +
       '<b>"여행 갈 때 트러블"</b> 처럼 말해주면 딱 알아들어.<br>아니면 아래에서 골라줘!', 600)

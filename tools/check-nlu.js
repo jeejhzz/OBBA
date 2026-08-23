@@ -71,10 +71,23 @@ const CASES = [
   ['여행갈때트러블',                  { situation: 'travel', concern: 'calming' }],
   ['내일  데이트   인데  건조해',     { situation: 'date', concern: 'hydration' }],
 
+  // --- 오타가 나도 알아들어야 하는 것 ---
+  ['트러불 났어',                     { concern: 'calming' }],
+  ['여드럼 심해',                     { concern: 'calming' }],
+  ['뾰루찌 올라옴',                   { concern: 'calming' }],
+  ['건조헤서 죽겠어',                 { concern: 'hydration' }],
+  ['여행깔 때 쓸 거',                 { situation: 'travel' }],
+  ['칙칙헤',                          { concern: 'brightening' }],
+
   // --- 못 알아들어야 정상인 것 (엉뚱한 추천을 하면 안 된다) ---
   ['ㅁㄴㅇㄹ',                        { situation: null, concern: null }],
   ['오늘 점심 뭐 먹지',               { situation: null, concern: null }],
   ['안녕',                            { situation: null, concern: null }],
+  ['배고파',                          { situation: null, concern: null }],
+  ['고마워',                          { situation: null, concern: null }],
+  ['내일 회의 있어',                  { situation: null, concern: null }],
+  ['주말에 영화 보러 갈까',           { situation: null, concern: null }],
+  ['노래 추천해줘',                   { situation: null, concern: null }],
 ];
 
 let pass = 0;
