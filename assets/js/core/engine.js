@@ -215,18 +215,58 @@ window.OBBA = window.OBBA || {};
       encodeURIComponent(p.searchQuery || (p.brand + ' ' + p.name));
   }
 
-  /** 자연어 한 줄에서 상황/고민/피부타입/예산을 뽑아낸다 (부분 문자열 매칭) */
-  function parse(text) {
-    var out = { situationId: null, concernId: null, skinTypeId: null, budgetId: null };
-    if (!text) return out;
-    Object.keys(OBBA.KEYWORDS).forEach(function (axis) {
-      var dict = OBBA.KEYWORDS[axis];
-      Object.keys(dict).forEach(function (id) {
-        if (out[axis + 'Id']) return;
-        var hit = dict[id].some(function (kw) { return text.indexOf(kw) !== -1; });
-        if (hit) out[axis + 'Id'] = id;
+  /* ---------------- 자연어 인식 ---------------- */
+
+  // 공백을 지우고 소문자로. 한국어는 띄어쓰기가 제각각이라 이게 인식률을 크게 올린다.
+  function normalize(text) {
+    return String(text == null ? '' : text).toLowerCase().replace(/\s+/g, '');
+  }
+
+  function wordOf(kw) { return Array.isArray(kw) ? kw[0] : kw; }
+  function weightOf(kw) { return Array.isArray(kw) ? kw[1] : kw.length; }
+
+  var MIN_SCORE = 2;   // 한 글자짜리 우연한 일치로는 결론내지 않는다
+
+  /** 한 축(상황/고민/...)에서 점수가 가장 높은 후보를 고른다 */
+  function matchAxis(norm, dict) {
+    var best = null;
+    Object.keys(dict).forEach(function (id) {
+      var score = 0;
+      var hits = [];
+      dict[id].forEach(function (kw) {
+        var w = wordOf(kw);
+        if (norm.indexOf(w) !== -1) { score += weightOf(kw); hits.push(w); }
       });
+      if (score >= MIN_SCORE && (!best || score > best.score)) {
+        best = { id: id, score: score, hits: hits };
+      }
     });
+    return best;
+  }
+
+  /**
+   * 자연어 한 줄에서 상황/고민/피부타입/예산을 뽑아낸다.
+   * @returns {{situationId, concernId, skinTypeId, budgetId, hits, understood}}
+   *   hits       축별로 실제 걸린 단어들 (왜 그렇게 알아들었는지 설명하거나 디버깅할 때)
+   *   understood 하나라도 알아들었는지
+   */
+  function parse(text) {
+    var norm = normalize(text);
+    var out = {
+      situationId: null, concernId: null, skinTypeId: null, budgetId: null,
+      hits: {}, understood: false
+    };
+    if (!norm) return out;
+
+    ['situation', 'concern', 'skinType', 'budget'].forEach(function (axis) {
+      var m = matchAxis(norm, OBBA.KEYWORDS[axis]);
+      if (m) {
+        out[axis + 'Id'] = m.id;
+        out.hits[axis] = m.hits;
+      }
+    });
+
+    out.understood = Boolean(out.situationId || out.concernId || out.skinTypeId || out.budgetId);
     return out;
   }
 

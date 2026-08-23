@@ -122,6 +122,12 @@
   function onSituation(item, opts) {
     if (!opts || !opts.silent) userSay(item.label);
     state.situationId = item.id;
+
+    // 고민을 이미 말했다면(자연어로 먼저 얘기한 경우) 또 묻지 않고 바로 추천한다
+    if (state.concernId) {
+      return runRecommendation(R.esc(item.reply) + ' 그럼 바로 골라볼게!');
+    }
+
     state.step = 'concern';
     return botSay(R.esc(item.reply) + '<br>그럼 그 상황에서 <b>제일 신경 쓰이는 피부 고민</b> 딱 하나만 골라봐.', 700)
       .then(function () { setQuickReplies(OBBA.CONCERNS, onConcern); });
@@ -130,6 +136,13 @@
   function onConcern(item, opts) {
     if (!opts || !opts.silent) userSay(item.label);
     state.concernId = item.id;
+
+    if (!state.situationId) {
+      state.step = 'situation';
+      return botSay('오케이. 그럼 <b>언제 쓸 건지</b>만 알려주면 바로 골라줄게!', 600)
+        .then(function () { setQuickReplies(OBBA.SITUATIONS, onSituation); });
+    }
+
     return runRecommendation();
   }
 
@@ -212,6 +225,19 @@
 
   /* ---------------- 자연어 입력 ---------------- */
 
+  /** 이번 입력에서 프로필로 새로 반영된 내용을 사람 말로 (없으면 빈 문자열) */
+  function ackProfile(parsed) {
+    var bits = [];
+    if (parsed.skinTypeId) bits.push(E.skinTypeOf(parsed.skinTypeId).label.replace(/^\S+\s/, ''));
+    if (parsed.budgetId) bits.push(E.budgetOf(parsed.budgetId).short);
+    return bits.length ? R.esc(bits.join(' · ')) + ' 체크했어.' : '';
+  }
+
+  function labelOf(list, id) {
+    var found = list.find(function (i) { return i.id === id; });
+    return found ? found.label.replace(/^\S+\s/, '') : '';
+  }
+
   function processInput() {
     var text = input.value.trim();
     if (!text) return;
@@ -222,10 +248,13 @@
     if (text.indexOf('장바구니') !== -1 || text.indexOf('카트') !== -1) { openCart(); return; }
 
     var parsed = E.parse(text);
+
+    // 피부타입·예산은 어느 단계에서 말하든 프로필에 반영한다
     var profilePatch = {};
     if (parsed.skinTypeId) profilePatch.skinType = parsed.skinTypeId;
     if (parsed.budgetId) profilePatch.budget = parsed.budgetId;
-    if (Object.keys(profilePatch).length) {
+    var profileChanged = Object.keys(profilePatch).length > 0;
+    if (profileChanged) {
       Store.patchProfile(profilePatch);
       syncChrome();
     }
@@ -233,30 +262,19 @@
     if (parsed.situationId) state.situationId = parsed.situationId;
     if (parsed.concernId) state.concernId = parsed.concernId;
 
-    // 상황과 고민이 모두 확보되면 곧장 추천으로 점프
-    if (state.situationId && state.concernId) {
-      var known = [];
-      if (parsed.skinTypeId) known.push(E.skinTypeOf(parsed.skinTypeId).label.replace(/^\S+\s/, ''));
-      if (parsed.budgetId) known.push(E.budgetOf(parsed.budgetId).short);
-      var intro = known.length
-        ? R.esc(known.join(' · ')) + ' 체크했어. 바로 골라볼게!'
-        : '알겠어, 바로 골라볼게!';
-      runRecommendation(intro);
+    var ack = ackProfile(parsed);
+
+    // 1) 상황과 고민이 다 모였으면 바로 추천
+    if (state.situationId && state.concernId && parsed.understood) {
+      runRecommendation(ack ? ack + ' 바로 골라볼게!' : '알겠어, 바로 골라볼게!');
       return;
     }
 
-    if (state.step === 'result' && Object.keys(profilePatch).length) {
-      runRecommendation('프로필 업데이트했어. 다시 골라볼게!');
-      return;
-    }
-
-    if (state.step === 'result' && (text.indexOf('비교') !== -1 || text.indexOf('차이') !== -1)) {
-      showComparison();
-      return;
-    }
-
-    if (!state.situationId) {
-      botSay('그 상황은 오빠가 아직 공부 중이야 🥲<br>비슷한 걸로 하나만 골라줄래?', 500)
+    // 2) 고민만 알아들었다 → 상황 하나만 더 물어본다
+    if (state.concernId && !state.situationId) {
+      var concernName = labelOf(OBBA.CONCERNS, state.concernId);
+      botSay('<b>' + R.esc(concernName) + '</b> 얘기구나, 알겠어. ' + (ack ? ack + ' ' : '') +
+        '<br>언제 쓸 건지만 알려주면 바로 골라줄게!', 600)
         .then(function () {
           state.step = 'situation';
           setQuickReplies(OBBA.SITUATIONS, onSituation);
@@ -264,10 +282,51 @@
       return;
     }
 
-    botSay('그 고민은 조금 더 연구해봐야겠는걸? 🤔<br>일단 제일 신경 쓰이는 건 뭐야?', 500)
+    // 3) 상황만 알아들었다 → 고민 하나만 더 물어본다
+    if (state.situationId && !state.concernId) {
+      var situation = OBBA.SITUATIONS.find(function (s) { return s.id === state.situationId; });
+      botSay(R.esc(situation ? situation.reply : '') + (ack ? ' ' + ack : '') +
+        '<br>그럼 <b>제일 신경 쓰이는 피부 고민</b> 하나만 골라봐.', 600)
+        .then(function () {
+          state.step = 'concern';
+          setQuickReplies(OBBA.CONCERNS, onConcern);
+        });
+      return;
+    }
+
+    // 4) 추천을 이미 받은 상태에서 비교를 요청
+    if (state.step === 'result' && (text.indexOf('비교') !== -1 || text.indexOf('차이') !== -1)) {
+      showComparison();
+      return;
+    }
+
+    // 5) 피부타입·예산만 말한 경우
+    if (profileChanged) {
+      if (state.step === 'result' && state.situationId && state.concernId) {
+        runRecommendation(ack + ' 그 기준으로 다시 골라볼게!');
+        return;
+      }
+      var next = state.step === 'concern' ? '고민' : '상황';
+      botSay(ack + ' 기억해뒀어.<br>이제 어떤 <b>' + next + '</b>인지 알려줘!', 600)
+        .then(function () {
+          if (state.step === 'concern') setQuickReplies(OBBA.CONCERNS, onConcern);
+          else { state.step = 'situation'; setQuickReplies(OBBA.SITUATIONS, onSituation); }
+        });
+      return;
+    }
+
+    // 6) 하나도 못 알아들었다 — 무엇을 말하면 되는지 예시로 알려준다
+    var askConcern = Boolean(state.situationId);
+    botSay('음, 그 말은 아직 못 알아듣겠어 😅<br>' +
+      '<b>"여행 갈 때 트러블"</b> 처럼 말해주면 딱 알아들어.<br>아니면 아래에서 골라줘!', 600)
       .then(function () {
-        state.step = 'concern';
-        setQuickReplies(OBBA.CONCERNS, onConcern);
+        if (askConcern) {
+          state.step = 'concern';
+          setQuickReplies(OBBA.CONCERNS, onConcern);
+        } else {
+          state.step = 'situation';
+          setQuickReplies(OBBA.SITUATIONS, onSituation);
+        }
       });
   }
 
