@@ -445,5 +445,20 @@
 
   Store.subscribe(syncChrome);
   syncChrome();
-  start();
+
+  // 시트가 설정돼 있으면 상품 목록을 먼저 갱신하고 대화를 시작한다.
+  // 시트가 없거나 못 읽어도 내장 목록으로 그대로 진행한다 (상담이 끊기면 안 된다).
+  if (typeof OBBA.loadCatalog === 'function') {
+    OBBA.loadCatalog().then(function (res) {
+      if (res.source === 'sheet') {
+        console.info('[OBBA] 시트에서 상품 목록 갱신', res.stats,
+          res.skipped && res.skipped.length ? '건너뜀: ' + res.skipped.join(' / ') : '');
+      } else if (res.reason && res.reason !== '시트 주소 미설정') {
+        console.warn('[OBBA] 시트를 못 읽어서 내장 목록으로 진행합니다 —', res.reason);
+      }
+      start();
+    });
+  } else {
+    start();
+  }
 })();

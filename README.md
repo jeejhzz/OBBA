@@ -57,7 +57,8 @@ assets/css/obba.src.css    스타일 소스 (Tailwind v4 + 커스텀). ← 여�
 assets/css/obba.css        빌드 산출물. 직접 고치지 말 것
 assets/fonts/pretendard/   Pretendard 가변 폰트 dynamic subset (SIL OFL)
 assets/js/
-  data/catalog.js          상품 21종. 연동 어댑터가 채울 스키마의 로컬 구현체
+  data/catalog.js          상품 21종. 내장 목록이자 시트 실패 시의 폴백
+  data/source.js           구글 시트에서 상품 목록 읽어오기 (실패하면 조용히 내장 목록)
   data/flows.js            상황/고민/피부타입/예산 축 + 큐레이션 16조합 + 자연어 사전
   core/store.js            프로필·장바구니 (localStorage, 실패해도 대화는 계속)
   core/engine.js           추천 엔진: 큐레이션 + 스코어링 하이브리드
@@ -67,6 +68,8 @@ assets/js/
   app.js                   대화 컨트롤러 + 이벤트 위임
 tools/check-catalog.js     스키마·참조 무결성·추천 회귀 검사 (npm test)
 tools/check-nlu.js         자연어 인식 시험지 45문항 (npm test)
+tools/export-catalog.js    현재 카탈로그를 시트용 CSV로 내보내기 (npm run export)
+tools/import-list.js       사람이 정리한 목록을 카탈로그 형식으로 변환
 tools/build-artifact.js    전체를 한 파일로 합쳐 링크 게시용 dist/obba.html 생성
 manifest.webmanifest       앱 이름·아이콘·전체화면 설정
 sw.js                      오프라인 캐시
