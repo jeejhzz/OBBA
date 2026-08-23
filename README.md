@@ -18,7 +18,19 @@ $ npm install            # 최초 1회
 $ npm run build:css      # assets/css/obba.src.css → assets/css/obba.css
 $ npm run watch:css      # 작업 중에는 이걸로
 $ npm test               # 카탈로그 스키마 + 16조합 회귀 검사
+$ npm run build          # CSS + 아티팩트 + 단독 파일 한 번에
 ```
+
+### 파일 하나로 뽑기
+
+```
+$ npm run build:standalone   # dist/obba-standalone.html
+```
+
+CSS·JS·아이콘·파비콘이 전부 들어간 완전한 HTML 한 개(약 107KB)를 만든다.
+더블클릭하면 그냥 열리고, 남에게 파일로 넘기거나 다른 도구에 통째로 넣을 때 쓴다.
+글꼴만 Google Fonts에서 받아온다(없으면 시스템 글꼴로 대체).
+홈 화면 추가·오프라인 기능은 `sw.js`·`manifest` 가 옆에 있어야 해서 이 버전에는 빠진다.
 
 ## 휴대폰에서 앱처럼 쓰기
 

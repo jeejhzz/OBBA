@@ -5,16 +5,20 @@
  * 개발할 때는 파일이 여러 개로 나뉘어 있는 게 편하지만, 아티팩트로 올리려면
  * CSS·JS가 전부 한 파일 안에 들어있어야 한다. 이 스크립트가 그걸 합친다.
  *
- *   npm run build:artifact   →  dist/obba.html
+ *   npm run build:artifact     →  dist/obba.html            (아티팩트 게시용)
+ *   npm run build:standalone   →  dist/obba-standalone.html (어디서나 혼자 열리는 완전한 파일)
  *
  * 아티팩트는 게시할 때 <!doctype html><head></head><body> 껍데기를 자동으로 씌워주므로
- * 여기서는 그 안에 들어갈 알맹이만 출력한다.
+ * 기본 출력에는 그 안에 들어갈 알맹이만 담는다.
+ * --standalone 을 주면 껍데기까지 붙여서 더블클릭으로 열리는 파일을 만든다.
  */
 const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
+
+const STANDALONE = process.argv.includes('--standalone');
 
 const html = read('index.html');
 
@@ -24,7 +28,11 @@ const markup = html.match(/<body>([\s\S]*?)<\/body>/)[1]
   .trim();
 
 // 2) index.html 이 읽는 스크립트를 순서 그대로 수집
-const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+let scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+
+// 홈 화면 추가/오프라인 기능은 sw.js·manifest 가 옆에 있어야 동작한다.
+// 파일 하나짜리 배포에는 그 파일들이 없으므로 뺀다.
+if (STANDALONE) scripts = scripts.filter(f => !f.endsWith('install.js'));
 
 // 3) 빌드된 CSS
 const css = read('assets/css/obba.css');
@@ -82,27 +90,55 @@ body {
 }
 `;
 
-const out = `<title>OBBA 뷰티 어시스턴트</title>
+// 6) 파비콘을 파일 참조가 아니라 데이터로 심는다 (파일 하나로 완결되도록)
+const faviconDataUri = 'data:image/svg+xml;utf8,' +
+  encodeURIComponent(read('assets/favicon.svg').replace(/\n\s*/g, ' '));
+
+// head 에 들어갈 것과 body 에 들어갈 것을 나눠 둔다.
+// 아티팩트는 둘을 이어 붙여 통째로 넘기고(게시할 때 껍데기가 씌워진다),
+// 단독 파일은 각각 제자리에 넣는다.
+const headPart = `<title>OBBA 뷰티 어시스턴트</title>
 ${FONT_LINK}
 <style>
 ${css}
-${OVERRIDES}</style>
+${OVERRIDES}</style>`;
 
-${markup}
+const bodyPart = `${markup}
 
 <p class="artifact-caption">
   <strong>OBBA</strong>는 올리브영에서 뭘 사야 할지 대신 골라주는 챗봇입니다.
   <span>상황과 피부 고민을 고르면 이유까지 붙여서 추천해요. 상품 링크는 올리브영으로 연결됩니다.</span>
 </p>
 
-${scripts.map(s => `<script>\n${read(s)}\n</script>`).join('\n\n')}
+${scripts.map(s => `<script>\n${read(s)}\n</script>`).join('\n\n')}`;
+
+const out = STANDALONE
+  ? `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="상황과 피부 고민만 고르면 올리브영 제품을 골라주는 대화형 뷰티 어시스턴트">
+<meta name="theme-color" content="#9BBF30">
+<link rel="icon" href="${faviconDataUri}" type="image/svg+xml">
+${headPart}
+</head>
+<body>
+${bodyPart}
+</body>
+</html>
+`
+  : `${headPart}
+
+${bodyPart}
 `;
 
 const distDir = path.join(root, 'dist');
 fs.mkdirSync(distDir, { recursive: true });
-const outPath = path.join(distDir, 'obba.html');
+const outPath = path.join(distDir, STANDALONE ? 'obba-standalone.html' : 'obba.html');
 fs.writeFileSync(outPath, out);
 
 const kb = n => (n / 1024).toFixed(1) + 'KB';
-console.log(`dist/obba.html 생성 완료 — ${kb(Buffer.byteLength(out))}`);
-console.log(`  스타일 ${kb(css.length)} · 스크립트 ${scripts.length}개 인라인`);
+console.log(`${path.relative(root, outPath)} 생성 완료 — ${kb(Buffer.byteLength(out))}`);
+console.log(`  스타일 ${kb(css.length)} · 스크립트 ${scripts.length}개 인라인` +
+  (STANDALONE ? ' · <html> 껍데기 포함, 파비콘 내장' : ''));

@@ -11,8 +11,9 @@
     "serve": "http-server -p 8137 -c-1 .",
     "test": "node tools/check-catalog.js && node tools/check-nlu.js",
     "build:artifact": "node tools/build-artifact.js",
-    "build": "npm run build:css && npm run build:artifact",
-    "export": "node tools/export-catalog.js"
+    "build": "npm run build:css && npm run build:artifact && npm run build:standalone",
+    "export": "node tools/export-catalog.js",
+    "build:standalone": "node tools/build-artifact.js --standalone"
   },
   "repository": {
     "type": "git",
