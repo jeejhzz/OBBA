@@ -1,83 +1,262 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="상황과 피부 고민만 고르면 올리브영 제품을 골라주는 대화형 뷰티 어시스턴트">
-  <meta name="theme-color" content="#9BBF30">
-  <title>OBBA - Oliveyoung Beauty Browser Assistant</title>
-
-  <!-- 외부 CDN 의존 없음: 폰트·스타일·아이콘 전부 저장소 안에 있다 -->
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-
-  <!-- 홈 화면에 추가했을 때 앱처럼 뜨게 하는 설정 -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="OBBA">
-  <link href="assets/fonts/pretendard/pretendard-dynamic-subset.css" rel="stylesheet">
-  <link href="assets/css/obba.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBBA - Oliveyoung Beauty Browser Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .snap-x-mandatory { scroll-snap-type: x mandatory; }
+        .snap-start { scroll-snap-align: start; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-100 flex justify-center items-center h-screen m-0 p-0 overflow-hidden">
 
-  <div class="mobile-container">
-
-    <!-- 헤더 -->
-    <header class="bg-white border-b px-3 py-2.5 flex items-center justify-between gap-2 z-10 shadow-sm shrink-0">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-9 h-9 rounded-full bg-olive flex items-center justify-center text-white font-bold shadow-md shrink-0" aria-hidden="true">OB</div>
-        <div class="min-w-0">
-          <h1 class="text-base font-bold text-gray-800 leading-tight truncate">OBBA <span data-icon="leaf" data-icon-class="w-3.5 h-3.5 inline-block align-[-1px] text-olive"></span></h1>
-          <button type="button" id="profile-chip" data-action="edit-profile"
-                  class="text-[10px] text-gray-500 hover:text-olive border border-gray-200 rounded-full px-2 py-0.5 mt-0.5 truncate max-w-[140px]">
-            피부타입 설정
-          </button>
+    <!-- 스마트폰 목업 프레임 -->
+    <div class="w-full max-w-md h-full bg-white shadow-2xl flex flex-col relative overflow-hidden">
+        
+        <!-- 상단 헤더 -->
+        <div class="bg-white border-b border-slate-100 px-4 py-3 flex justify-between items-center z-10 shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-md">OB</div>
+                <div>
+                    <h1 class="font-bold text-slate-800 text-base leading-tight">OBBA (오빠)</h1>
+                    <p class="text-xs text-slate-400">Oliveyoung Beauty Browser Assistant</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1">
+                <button onclick="shareChat()" class="p-2 text-slate-500 hover:text-emerald-600 hover:bg-slate-50 rounded-full transition" title="대화 공유하기">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                </button>
+                <button onclick="resetChat()" class="p-2 text-slate-500 hover:text-red-500 hover:bg-slate-50 rounded-full transition" title="초기화">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
         </div>
-      </div>
 
-      <button type="button" data-action="restart" aria-label="대화 처음부터 다시하기"
-              class="shrink-0 w-9 h-9 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-        <span data-icon="rotate-cw" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
-      </button>
-    </header>
+        <!-- 채팅 메시지 영역 -->
+        <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll pb-32"></div>
 
-    <!-- 대화 -->
-    <main id="chat-container" role="log" aria-live="polite" aria-label="OBBA 상담 대화"
-          class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"></main>
-
-    <!-- 퀵 리플라이 -->
-    <div class="w-full bg-gray-50 pt-1 pb-2 shrink-0">
-      <div id="quick-reply-container" class="horizontal-scroll-container hide-scrollbar px-4 w-full" aria-label="빠른 답변"></div>
+        <!-- 하단 고정 입력 및 퀵리플라이 영역 -->
+        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+            <div id="quickReplies" class="flex gap-2 overflow-x-auto hide-scrollbar mb-2 pb-1 snap-x-mandatory"></div>
+            <div class="flex items-center space-x-2">
+                <input type="text" id="userInput" placeholder="피부 타입이나 고민을 입력해봐!" 
+                    class="flex-1 bg-slate-100 border-0 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700"
+                    onkeypress="if(event.key === 'Enter') handleUserText()">
+                <button onclick="handleUserText()" class="bg-emerald-600 text-white rounded-full p-2.5 hover:bg-emerald-700 transition flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- 홈 화면에 추가 안내 (설치 가능할 때만 나타난다) -->
-    <div id="install-hint" class="hidden shrink-0"></div>
+    <script>
+        const chatData = {
+            situations: [
+                { id: 'date', label: '🥂 데이트/중요한 약속' },
+                { id: 'work', label: '💻 야근 후 피로/푸석함' },
+                { id: 'travel', label: '✈️ 여행/바캉스 시즌' }
+            ],
+            concerns: [
+                { id: 'moisture', label: '💧 속건조/수분 팡팡' },
+                { id: 'trouble', label: '🚨 트러블/긴급 진정' },
+                { id: 'tone', label: '✨ 칙칙함/생기 충전' }
+            ],
+            products: {
+                'date-moisture': [
+                    { brand: 'TORRIDEN', name: '다이브인 저분자 히알루론산 세럼', price: '15,400원', originalPrice: '22,000원', discount: '30%', target: '수부지/속건조', point: '3초 수분 충전 1위 세럼', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=다이브인+저분자+히알루론산+세럼' },
+                    { brand: 'AESTURA', name: '아토베리어365 크림', price: '24,500원', originalPrice: '32,000원', discount: '23%', target: '건성/장벽파괴', point: '캡슐 세라마이드가 녹아드는 철벽 보습', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=아토베리어365+크림' },
+                    { brand: 'LANEIGE', name: '워터뱅크 블루 히알루로닉 에멀전', price: '26,000원', originalPrice: '33,000원', discount: '21%', target: '건조함', point: '미세 히알루론산으로 겉보습과 속보습 듀얼 케어', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=워터뱅크+블루+히알루로닉+에멀전' }
+                ],
+                'work-trouble': [
+                    { brand: 'ANUA', name: '어성초 77 수딩 토너', price: '30,500원', originalPrice: '38,000원', discount: '19%', target: '트러블/민감성', point: '어성초 추출물 77% 함유로 빠른 홍조 및 트러블 진정', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=어성초+77+수딩+토너' },
+                    { brand: 'Dr.G', name: '레드 블레미쉬 클리어 수딩 크림', price: '19,000원', originalPrice: '36,000원', discount: '47%', target: '지성/트러블', point: '끈적임 없이 열감을 낮춰주는 수분 젤 크림 1위', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=레드+블레미쉬+클리어+수딩+크림' },
+                    { brand: 'MEDIHEAL', name: '티트리 트러블 패드', price: '17,900원', originalPrice: '26,000원', discount: '31%', target: '트러블/지성', point: '집중 진정이 필요한 부위에 붙이는 네모 패드', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=티트리+트러블+패드' }
+                ],
+                'date-tone': [
+                    { brand: 'goodal', name: '청귤 비타C 잡티 케어 세럼', price: '24,000원', originalPrice: '34,000원', discount: '29%', target: '잡티/칙칙함', point: '저자극 비타민C 유도체로 순한 잡티 케어', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=청귤+비타C+잡티+케어+세럼' },
+                    { brand: 'rom&nd', name: '쥬시 래스팅 틴트', price: '9,900원', originalPrice: '13,000원', discount: '23%', target: '탕후루광/볼륨', point: '과즙 터지는 맑은 광택과 선명한 컬러감', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=쥬시+래스팅+틴트' },
+                    { brand: 'dAlba', name: '워터풀 톤업 선크림', price: '22,000원', originalPrice: '34,000원', discount: '35%', target: '파데프리', point: '자연스러운 핑크빛 톤업으로 생기 부여', url: 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=워터풀+톤업+선크림' }
+                ]
+            }
+        };
 
-    <!-- 입력 -->
-    <footer class="w-full bg-white border-t border-gray-200 px-4 py-3 shrink-0 flex items-center gap-2 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
-            style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
-      <label for="user-input" class="sr-only">피부 고민 입력</label>
-      <input type="text" id="user-input" autocomplete="off" enterkeyhint="send"
-             class="flex-1 bg-gray-100 rounded-full px-4 py-2.5 outline-none focus:ring-2 focus:ring-olive/50 text-sm transition-shadow"
-             placeholder="예) 복합성인데 여행 갈 때 진정 제품">
-      <button type="button" id="send-btn" aria-label="보내기"
-              class="w-10 h-10 bg-olive text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#8AA82A] transition-colors shadow-sm">
-        <span data-icon="send" data-icon-class="w-[18px] h-[18px]"></span>
-      </button>
-    </footer>
+        let userSelection = { situationId: '', concernId: '' };
+        let currentRecommendations = [];
+        const chatContainer = document.getElementById('chatContainer');
+        const quickReplies = document.getElementById('quickReplies');
 
-  </div>
+        function initChat() {
+            chatContainer.innerHTML = '';
+            addBotMessage("안녕! 오늘 어떤 상황을 위한 뷰티템이 필요하신가요? 오빠가 싹 다 골라줄게! 😉");
+            renderQuickReplies(chatData.situations, handleSituationSelection);
+        }
 
-  <script src="assets/js/data/catalog.js"></script>
-  <script src="assets/js/data/flows.js"></script>
-  <script src="assets/js/data/source.js"></script>
-  <script src="assets/js/core/store.js"></script>
-  <script src="assets/js/core/engine.js"></script>
-  <script src="assets/js/ui/icons.js"></script>
-  <script src="assets/js/ui/render.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script src="assets/js/ui/install.js"></script>
+        function addBotMessage(text) {
+            chatContainer.innerHTML += `
+                <div class="flex items-start space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow">OB</div>
+                    <div class="bg-slate-100 text-slate-800 p-3.5 rounded-2xl rounded-tl-sm text-sm max-w-[85%] leading-relaxed">${text}</div>
+                </div>`;
+            scrollToBottom();
+        }
+
+        function addUserMessage(text) {
+            chatContainer.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-emerald-600 text-white p-3.5 rounded-2xl rounded-tr-sm text-sm max-w-[85%] leading-relaxed shadow-sm">${text}</div>
+                </div>`;
+            scrollToBottom();
+        }
+
+        function renderQuickReplies(items, callback) {
+            quickReplies.innerHTML = '';
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-white border border-slate-300 text-slate-700 hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-700 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition shadow-sm shrink-0 snap-start';
+                btn.innerText = item.label;
+                btn.onclick = () => callback(item);
+                quickReplies.appendChild(btn);
+            });
+        }
+
+        function handleSituationSelection(item) {
+            userSelection.situationId = item.id;
+            addUserMessage(item.label);
+            setTimeout(() => {
+                addBotMessage(`오, ${item.label.split(' ')[1]} 상황이구나! 그럴 때 가장 시급한 피부 고민은 뭐야?`);
+                renderQuickReplies(chatData.concerns, handleConcernSelection);
+            }, 400);
+        }
+
+        function handleConcernSelection(item) {
+            userSelection.concernId = item.id;
+            addUserMessage(item.label);
+            
+            setTimeout(() => {
+                const key = `${userSelection.situationId}-${userSelection.concernId}`;
+                let products = chatData.products[key] || chatData.products['date-moisture'];
+                currentRecommendations = products;
+
+                addBotMessage(`오빠가 딱 골라온 올리브영 꿀템 조합이야! 🛒 이 중에서 골라봐.`);
+                renderProductCards(products);
+
+                setTimeout(() => {
+                    renderQuickReplies([
+                        { id: 'compare', label: '🤔 제품들 비교해줘!' },
+                        { id: 'continue', label: '🔄 다른 고민도 있어' }
+                    ], handlePostAction);
+                }, 500);
+            }, 400);
+        }
+
+        function renderProductCards(products) {
+            let cardsHtml = '<div class="flex gap-3 overflow-x-auto custom-scroll pb-3 pt-1 w-full snap-x-mandatory">';
+            products.forEach(p => {
+                cardsHtml += `
+                    <div class="min-w-[220px] max-w-[220px] bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between shrink-0 snap-start">
+                        <div>
+                            <div class="bg-slate-900 text-white text-[10px] font-extrabold px-2 py-0.5 rounded tracking-wider uppercase inline-block mb-2">${p.brand}</div>
+                            <div class="text-sm font-bold text-slate-800 line-clamp-2 h-10 mb-2">${p.name}</div>
+                            <div class="flex items-baseline space-x-1.5 mb-4">
+                                <span class="text-red-500 font-bold text-sm">${p.discount}</span>
+                                <span class="text-slate-800 font-extrabold text-sm">${p.price}</span>
+                                <span class="text-slate-400 text-[11px] line-through">${p.originalPrice}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <button onclick="window.open('${p.url}', '_blank')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center space-x-1">
+                                <span>올리브영 바로가기 🔗</span>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            cardsHtml += '</div>';
+            chatContainer.innerHTML += cardsHtml;
+            scrollToBottom();
+        }
+
+        function handlePostAction(item) {
+            if (item.id === 'compare') {
+                addUserMessage("🤔 제품들 비교해줘!");
+                setTimeout(() => renderComparisonTable(currentRecommendations), 400);
+            } else {
+                addUserMessage("🔄 다른 고민도 있어");
+                setTimeout(() => {
+                    addBotMessage("좋아! 대화는 그대로 둘게. 이번엔 어떤 상황이야?");
+                    renderQuickReplies(chatData.situations, handleSituationSelection);
+                }, 400);
+            }
+        }
+
+        function renderComparisonTable(products) {
+            let tableHtml = `
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="flex items-center space-x-1.5 text-emerald-700 font-bold text-xs uppercase tracking-wide">
+                        <span>💡 오빠의 1:1 비교 팩트체크</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">`;
+            
+            products.slice(0, 4).forEach(p => {
+                tableHtml += `
+                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">${p.brand}</div>
+                        <div class="text-xs font-bold text-slate-800 truncate mb-1">${p.name}</div>
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-[11px] space-y-1">
+                            <div class="text-emerald-700 font-semibold">📌 추천 대상</div>
+                            <div class="text-slate-600 leading-tight">${p.target}</div>
+                            <div class="text-blue-600 font-semibold pt-1">✨ 핵심 포인트</div>
+                            <div class="text-slate-600 leading-tight">${p.point}</div>
+                        </div>
+                    </div>`;
+            });
+            tableHtml += `</div></div>`;
+            chatContainer.innerHTML += tableHtml;
+            scrollToBottom();
+            
+            setTimeout(() => {
+                renderQuickReplies([{ id: 'continue', label: '🔄 다른 상황/고민 고르기' }], handlePostAction);
+            }, 300);
+        }
+
+        function handleUserText() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if(!text) return;
+            
+            addUserMessage(text);
+            input.value = '';
+
+            setTimeout(() => {
+                if (text.includes('복합성') || text.includes('타입')) {
+                    addBotMessage("복합성 피부는 T존은 번들거리고 U존은 건조해서 까다롭지! 가벼우면서도 속보습을 꽉 잡아주는 제품이 유리해.");
+                } else {
+                    addBotMessage(`"${text}" 관련해서 분석해줄게! 먼저 상황을 골라주면 더 정확해 😉`);
+                    renderQuickReplies(chatData.situations, handleSituationSelection);
+                }
+            }, 500);
+        }
+
+        function resetChat() {
+            initChat();
+        }
+
+        function shareChat() {
+            alert("대화 내용이 복사되었습니다! (공유 기능 시뮬레이션)");
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+        }
+
+        window.onload = initChat;
+    </script>
 </body>
 </html>
