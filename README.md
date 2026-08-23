@@ -19,6 +19,23 @@ $ npm run watch:css      # 작업 중에는 이걸로
 $ npm test               # 카탈로그 스키마 + 16조합 회귀 검사
 ```
 
+## 휴대폰에서 앱처럼 쓰기
+
+GitHub Pages로 띄운 주소를 폰 브라우저에서 열고 **홈 화면에 추가**하면 끝이다.
+아이콘이 생기고, 주소창 없이 전체화면으로 뜨고, **비행기 모드에서도 열린다.**
+
+- 안드로이드/크롬: 앱 안에 뜨는 `추가하기` 버튼 한 번
+- 아이폰/사파리: 공유 버튼 → `홈 화면에 추가` (앱이 안내를 띄워준다)
+
+오프라인 동작은 서비스워커(`sw.js`)가 담당한다. 외부 CDN을 전부 걷어냈기 때문에
+캐시만으로 완전히 자립한다 — 처음 한 번 열어두면 그 뒤로는 인터넷이 없어도 상담이 된다.
+(상품 링크를 눌러 올리브영으로 넘어가는 것만 인터넷이 필요하다)
+
+### 주소 만들기 (최초 1회)
+
+저장소 **Settings → Pages → Source: Deploy from a branch → 브랜치 선택 → /(root) → Save**.
+1~2분 뒤 `https://jeejhzz.github.io/OBBA/` 로 열린다. 이후에는 푸시할 때마다 자동 반영된다.
+
 ## 무엇을 하는가
 
 1. **피부타입 → 상황 → 고민** 3단계 질문. 각 단계는 버튼 한 번 또는 자연어 한 줄로 넘어간다.
@@ -46,8 +63,12 @@ assets/js/
   core/engine.js           추천 엔진: 큐레이션 + 스코어링 하이브리드
   ui/icons.js              아이콘 8종 인라인 SVG (Lucide, ISC)
   ui/render.js             HTML 빌더. 사용자 입력은 전부 esc() 통과
+  ui/install.js            홈 화면 추가 안내 + 서비스워커 등록
   app.js                   대화 컨트롤러 + 이벤트 위임
 tools/check-catalog.js     스키마·참조 무결성·추천 회귀 검사 (npm test)
+tools/build-artifact.js    전체를 한 파일로 합쳐 링크 게시용 dist/obba.html 생성
+manifest.webmanifest       앱 이름·아이콘·전체화면 설정
+sw.js                      오프라인 캐시
 ```
 
 ### 외부 의존성 없음

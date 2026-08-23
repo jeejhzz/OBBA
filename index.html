@@ -9,6 +9,14 @@
 
   <!-- 외부 CDN 의존 없음: 폰트·스타일·아이콘 전부 저장소 안에 있다 -->
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+  <!-- 홈 화면에 추가했을 때 앱처럼 뜨게 하는 설정 -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="OBBA">
   <link href="assets/fonts/pretendard/pretendard-dynamic-subset.css" rel="stylesheet">
   <link href="assets/css/obba.css" rel="stylesheet">
 </head>
@@ -51,6 +59,9 @@
       <div id="quick-reply-container" class="horizontal-scroll-container hide-scrollbar px-4 w-full" aria-label="빠른 답변"></div>
     </div>
 
+    <!-- 홈 화면에 추가 안내 (설치 가능할 때만 나타난다) -->
+    <div id="install-hint" class="hidden shrink-0"></div>
+
     <!-- 입력 -->
     <footer class="w-full bg-white border-t border-gray-200 px-4 py-3 shrink-0 flex items-center gap-2 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
             style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
@@ -85,5 +96,6 @@
   <script src="assets/js/ui/icons.js"></script>
   <script src="assets/js/ui/render.js"></script>
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/ui/install.js"></script>
 </body>
 </html>
