@@ -78,7 +78,7 @@
     state = { step: 'situation', situationId: null, concernId: null, lastRec: null, pendingMiss: null };
     var label = profileLabel();
 
-    var greeting = '안녕! 올리브영 뷰티 어시스턴트 <b>OBBA(오빠)</b>야 😎<br>' +
+    var greeting = '안녕! 올리브영 뷰티 브라우저 어시스턴트 <b>OBBA(오빠)</b>야 😎<br>' +
       '수만 개 제품 중에 너한테 딱 맞는 것만 골라줄게.';
 
     botSay(greeting, 500).then(function () {
