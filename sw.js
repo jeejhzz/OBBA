@@ -3,12 +3,11 @@
  *
  * 전략
  *   HTML       네트워크 우선 (새 버전을 놓치지 않기 위해). 실패하면 캐시.
- *   정적 파일  캐시 우선 (즉시 실행). 없으면 받아서 캐시에 넣는다.
+ *   정적 파일  캐시를 즉시 내주되 뒤에서 새 버전을 받아 갱신한다(stale-while-revalidate).
+ *              화면은 빠르게 뜨고, 파일을 고치면 다음 실행에 반영된다.
  *   폰트 조각  92개를 미리 다 받으면 낭비라, 실제로 쓴 것만 캐시에 쌓인다.
- *
- * 앱 파일이 바뀌면 CACHE 버전을 올린다 (그래야 새 파일을 받아온다).
  */
-const CACHE = 'obba-v4';
+const CACHE = 'obba-v5';
 
 // 첫 실행에 반드시 필요한 것만. 나머지는 쓰면서 캐시에 쌓인다.
 const CORE = [
@@ -65,14 +64,19 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 그 외(스타일/스크립트/폰트/아이콘)는 캐시 우선
+  // 그 외(스타일/스크립트/폰트/아이콘): 캐시를 바로 내주고, 동시에 새 버전을 받아 캐시를 갱신한다.
+  // 캐시 우선만 쓰면 파일을 고쳐도 캐시 버전을 올리기 전까지 옛 파일이 계속 나간다.
   event.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      if (res.ok) {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
-      }
-      return res;
-    }))
+    caches.match(req).then(hit => {
+      const fresh = fetch(req).then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
+        }
+        return res;
+      }).catch(() => hit);          // 오프라인이면 캐시로 버틴다
+
+      return hit || fresh;
+    })
   );
 });
