@@ -43,7 +43,10 @@ OBBA.CATALOG.forEach((p, i) => {
   (p.concerns || []).forEach(v => check(CONCERNS.includes(v), `${at}: 알 수 없는 concern "${v}"`));
   check(Array.isArray(p.situations) && p.situations.length, `${at}: situations 비어있음`);
   (p.situations || []).forEach(v => check(SITUATIONS.includes(v), `${at}: 알 수 없는 situation "${v}"`));
-  check(p.goodsNo === null || /^[A-Za-z0-9]+$/.test(String(p.goodsNo || '')), `${at}: goodsNo 형식 이상`);
+  check(p.goodsNo === null || /^A\d{12}$/.test(String(p.goodsNo)),
+    `${at}: goodsNo 형식 이상 (A + 숫자 12자리여야 함)`);
+  check(!p.goodsNo || (typeof p.goodsNoSource === 'string' && p.goodsNoSource.trim()),
+    `${at}: goodsNo 를 채웠으면 goodsNoSource(근거)도 남길 것`);
   check(p.goodsNo !== null, `${at}: goodsNo 미확보 → 검색 딥링크로 폴백`, warnings);
 });
 
@@ -62,7 +65,9 @@ OBBA.SITUATIONS.forEach(s => OBBA.CONCERNS.forEach(c => {
   check(n >= 2, `engine: ${key} 추천이 ${n}개 (비교 뷰가 동작하려면 2개 이상)`);
 }));
 
+const linked = OBBA.CATALOG.filter(p => p.goodsNo).length;
 console.log(`상품 ${OBBA.CATALOG.length}종 · 큐레이션 ${Object.keys(OBBA.CURATION).length}조합 검사`);
+console.log(`딥링크: 상세페이지 직행 ${linked}종 / 검색 폴백 ${OBBA.CATALOG.length - linked}종`);
 if (warnings.length) {
   console.log(`\n경고 ${warnings.length}건`);
   warnings.slice(0, 5).forEach(w => console.log('  ! ' + w));

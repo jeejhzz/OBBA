@@ -15,6 +15,7 @@
  *   concerns      hydration|calming|brightening|texture|elasticity|sebum|sun
  *   situations    date|tired|travel|daily
  *   goodsNo       올리브영 상품번호(확보 시). null이면 검색 딥링크로 폴백
+ *   goodsNoSource goodsNo를 어떤 근거로 확정했는지. 재검증할 때 이걸 보고 판단한다
  *   searchQuery   검색 딥링크용 키워드 (상품명보다 짧고 정확하게)
  */
 window.OBBA = window.OBBA || {};
@@ -29,7 +30,8 @@ OBBA.CATALOG = [
     skinTypes: ['oily', 'combination', 'dehydrated', 'normal', 'sensitive'],
     concerns: ['hydration', 'texture'], situations: ['date', 'daily', 'travel', 'tired'],
     target: '지성/수부지, 메이크업 전', point: '가벼운 텍스처, 즉각적인 수분길 오픈',
-    goodsNo: null, searchQuery: '토리든 다이브인 세럼'
+    goodsNo: 'A000000190326', goodsNoSource: '[1등세럼/단독기획] 다이브인 세럼 50ml 기획(+멀티패드 10매) — 대표 판매 SKU',
+    searchQuery: '토리든 다이브인 세럼'
   },
   {
     id: 'aestura-atobarrier365-cream',
@@ -51,7 +53,8 @@ OBBA.CATALOG = [
     skinTypes: ['dry', 'oily', 'combination', 'sensitive', 'dehydrated', 'normal'],
     concerns: ['calming'], situations: ['date', 'tired', 'travel', 'daily'],
     target: '눈에 띄는 트러블이 고민일 때', point: '얇은 테두리로 화장 후에도 감쪽같음',
-    goodsNo: null, searchQuery: '케어플러스 스팟패치'
+    goodsNo: 'A000000187728', goodsNoSource: '[7년연속 1등패치]케어플러스 상처커버 스팟패치 102매',
+    searchQuery: '케어플러스 스팟패치'
   },
   {
     id: 'goodal-green-tangerine-serum',
@@ -73,7 +76,8 @@ OBBA.CATALOG = [
     skinTypes: ['normal', 'combination', 'dry', 'dehydrated'],
     concerns: ['texture', 'brightening'], situations: ['date', 'daily'],
     target: '피부가 푸석하고 요철이 부각될 때', point: '발효 성분으로 깐달걀 피부결 완성',
-    goodsNo: null, searchQuery: '넘버즈인 3번 세럼'
+    goodsNo: 'A000000166420', goodsNoSource: '넘버즈인 3번 보들보들 결 세럼 50ml (단품)',
+    searchQuery: '넘버즈인 3번 세럼'
   },
   {
     id: 'laneige-water-sleeping-mask',
@@ -106,7 +110,8 @@ OBBA.CATALOG = [
     skinTypes: ['sensitive', 'oily', 'combination'],
     concerns: ['calming'], situations: ['tired', 'date', 'daily'],
     target: '빠르고 확실한 집중 진정이 필요할 때', point: '초밀착 시트로 에센스 남김없이 흡수',
-    goodsNo: null, searchQuery: '아비브 어성초 마스크'
+    goodsNo: 'A000000188019', goodsNoSource: '[1매/5종] 아비브 껌딱지 시트 마스크 스티커 1매 — 페이지에서 어성초 선택',
+    searchQuery: '아비브 어성초 마스크'
   },
   {
     id: 'isoi-blemish-care-up-serum',
@@ -128,7 +133,8 @@ OBBA.CATALOG = [
     skinTypes: ['oily', 'combination'],
     concerns: ['texture', 'sebum'], situations: ['tired', 'daily'],
     target: '클렌징과 각질 정돈을 한 번에 원할 때', point: 'BHA 성분으로 묵은 각질, 피지 딥클렌징',
-    goodsNo: null, searchQuery: '스트리덱스 센시티브 패드'
+    goodsNo: 'A000000114166', goodsNoSource: '[각질/피지] 스트라이덱스 센시티브 패드 90매',
+    searchQuery: '스트라이덱스 센시티브 패드'
   },
   {
     id: 'dalba-white-truffle-mist',
@@ -172,7 +178,8 @@ OBBA.CATALOG = [
     skinTypes: ['dry', 'normal', 'combination'],
     concerns: ['brightening', 'sun'], situations: ['travel', 'date', 'daily'],
     target: '야외 활동 시 덧바를 선크림이 필요할 때', point: '수분 크림처럼 촉촉하고 핑크빛 톤업',
-    goodsNo: null, searchQuery: '에스쁘아 워터 스플래쉬 선크림'
+    goodsNo: 'A000000179353', goodsNoSource: '[톤업선크림] 에스쁘아 워터 스플래쉬 선크림 세라마이드 60ml',
+    searchQuery: '에스쁘아 워터 스플래쉬 선크림'
   },
   {
     id: 'skinfood-carrot-pad',
@@ -183,7 +190,8 @@ OBBA.CATALOG = [
     skinTypes: ['sensitive', 'normal', 'combination'],
     concerns: ['texture', 'calming'], situations: ['travel', 'daily', 'tired'],
     target: '자극 없이 부드러운 각질/진정 케어', point: '도톰한 순면 패드로 마찰 자극 최소화',
-    goodsNo: null, searchQuery: '스킨푸드 캐롯 카밍 패드'
+    goodsNo: 'A000000143285', goodsNoSource: '[당근패드] 스킨푸드 캐롯 카로틴 카밍 워터 패드 60매',
+    searchQuery: '스킨푸드 캐롯 카밍 패드'
   },
   {
     id: 'roundlab-birch-moisture-cream',
@@ -194,7 +202,8 @@ OBBA.CATALOG = [
     skinTypes: ['combination', 'oily', 'dehydrated', 'normal'],
     concerns: ['hydration'], situations: ['daily', 'date', 'travel'],
     target: '무겁지 않고 산뜻한 데일리 크림', point: '자작나무 수액으로 속건조 완벽 케어',
-    goodsNo: null, searchQuery: '라운드랩 자작나무 수분크림'
+    goodsNo: 'A000000141723', goodsNoSource: '라운드랩 자작나무 수분 크림 80ml (단품)',
+    searchQuery: '라운드랩 자작나무 수분크림'
   },
   {
     id: 'makeprem-safe-me-cleansing-foam',
@@ -205,7 +214,8 @@ OBBA.CATALOG = [
     skinTypes: ['sensitive', 'dry', 'normal', 'combination'],
     concerns: ['hydration', 'calming'], situations: ['daily', 'tired'],
     target: '세안 후 당김 없는 순한 클렌징', point: 'pH5.5 약산성으로 수분 장벽 보호',
-    goodsNo: null, searchQuery: '메이크프렘 세이프미 클렌징폼'
+    goodsNo: 'A000000113670', goodsNoSource: '메이크프렘 세이프미 릴리프 모이스처 클렌징폼 150ml 1+1 기획 — 단일 SKU',
+    searchQuery: '메이크프렘 세이프미 클렌징폼'
   },
   {
     id: 'mediheal-teatree-mask',
@@ -216,7 +226,8 @@ OBBA.CATALOG = [
     skinTypes: ['oily', 'combination', 'sensitive'],
     concerns: ['calming'], situations: ['daily', 'tired'],
     target: '1일 1팩으로 데일리 진정 관리', point: '티트리 성분으로 피부 스트레스 완화',
-    goodsNo: null, searchQuery: '메디힐 티트리 마스크'
+    goodsNo: 'A000000160659', goodsNoSource: '메디힐 티트리 에센셜 마스크 1매 (2,000→1,000원 일치)',
+    searchQuery: '메디힐 티트리 마스크'
   },
   {
     id: 'manyo-galac-niacin-essence',
@@ -227,7 +238,8 @@ OBBA.CATALOG = [
     skinTypes: ['normal', 'combination', 'dehydrated', 'oily'],
     concerns: ['brightening', 'texture'], situations: ['daily', 'date'],
     target: '매일 맑아지는 투명한 피부를 원할 때', point: '나이아신아마이드로 데일리 미백 케어',
-    goodsNo: null, searchQuery: '마녀공장 갈락토미 나이아신 에센스'
+    goodsNo: 'A000000120924', goodsNoSource: '마녀공장 갈락토미 나이아신 투명광채 에센스 50ml',
+    searchQuery: '마녀공장 갈락토미 나이아신 에센스'
   },
   {
     id: 'bioheal-probioderm-lifting-cream',
