@@ -274,13 +274,6 @@ window.OBBA = window.OBBA || {};
     return STEP_META[step] || { order: 99, label: '기타' };
   }
 
-  /** 장바구니를 루틴 순서(클렌징→선케어)로 정렬 */
-  function sortByRoutine(products) {
-    return products.slice().sort(function (a, b) {
-      return stepMeta(a.step).order - stepMeta(b.step).order;
-    });
-  }
-
   OBBA.Engine = {
     recommend: recommend,
     scoreProduct: scoreProduct,
@@ -290,7 +283,6 @@ window.OBBA = window.OBBA || {};
     discountRate: discountRate,
     formatWon: formatWon,
     stepMeta: stepMeta,
-    sortByRoutine: sortByRoutine,
     skinTypeOf: skinTypeOf,
     budgetOf: budgetOf,
     preferredTexture: preferredTexture

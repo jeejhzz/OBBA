@@ -103,35 +103,6 @@ body {
   .horizontal-scroll-container { scroll-behavior: auto; }
 }
 
-/* 장바구니 바텀시트 */
-.sheet-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(17, 24, 39, 0.45);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 40;
-}
-
-.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
-
-.sheet {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  background: #fff;
-  border-radius: 1.25rem 1.25rem 0 0;
-  max-height: 78%;
-  display: flex;
-  flex-direction: column;
-  transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 50;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.sheet.open { transform: translateY(0); }
-
 /* 상품 카드 */
 .product-card { width: 244px; }
 .fit-chip {

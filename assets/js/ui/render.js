@@ -79,11 +79,8 @@ window.OBBA = window.OBBA || {};
               (p.discountRate ? '<span class="text-gray-400 text-[10px] line-through ml-0.5">' + esc(p.listPriceLabel) + '</span>' : '') +
             '</div>' +
             '<a href="' + esc(E.oliveyoungUrl(p)) + '" target="_blank" rel="noopener noreferrer" ' +
-              'class="block text-center w-full py-2 bg-olive text-white text-[13px] font-bold rounded-lg hover:bg-[#8AA82A] transition-colors shadow-sm mb-2">' +
+              'class="block text-center w-full py-2.5 bg-olive text-white text-[13px] font-bold rounded-lg hover:bg-[#8AA82A] transition-colors shadow-sm">' +
               OBBA.icon('external-link', 'w-3.5 h-3.5 inline-block align-[-2px] mr-1') + '올리브영에서 보기</a>' +
-            '<button type="button" data-action="add-cart" data-id="' + esc(p.id) + '" ' +
-              'class="w-full py-2 bg-gray-900 text-white text-[13px] font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-sm">' +
-              '장바구니 담기</button>' +
           '</div>' +
         '</div>' +
       '</article>';
@@ -132,73 +129,6 @@ window.OBBA = window.OBBA || {};
       '</div></div>';
   }
 
-  function cartSheet() {
-    var cart = OBBA.Store.getCart();
-    var totals = OBBA.Store.cartTotals();
-    var items = E.sortByRoutine(cart.map(function (l) {
-      var p = OBBA.byId(l.id);
-      return p ? Object.assign({}, p, { qty: l.qty }) : null;
-    }).filter(Boolean));
-
-    if (!items.length) {
-      return '<div class="p-8 text-center text-gray-500 text-sm">' +
-        '<span class="block text-gray-300 mb-3">' + OBBA.icon('smile', 'w-9 h-9 mx-auto') + '</span>' +
-        '아직 담은 게 없어!<br>추천 카드에서 마음에 드는 걸 담아봐.</div>';
-    }
-
-    var rows = items.map(function (p) {
-      var step = E.stepMeta(p.step);
-      return '<li class="flex items-center gap-3 py-3 border-b border-gray-100">' +
-        '<div class="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0">' + esc(step.label) + '</div>' +
-        '<div class="flex-1 min-w-0">' +
-          '<p class="text-[11px] text-gray-500 font-bold">' + esc(p.brand) + '</p>' +
-          '<p class="text-[12px] font-bold text-gray-800 line-clamp-2 leading-snug">' + esc(p.name) + '</p>' +
-          '<p class="text-[12px] text-gray-900 font-bold mt-0.5">' + esc(E.formatWon(p.price * p.qty)) + '</p>' +
-        '</div>' +
-        '<div class="flex items-center gap-1.5 shrink-0">' +
-          '<button type="button" data-action="cart-dec" data-id="' + esc(p.id) + '" aria-label="수량 줄이기" class="w-7 h-7 rounded-full border border-gray-200 text-gray-600 text-sm">−</button>' +
-          '<span class="w-5 text-center text-sm font-bold">' + p.qty + '</span>' +
-          '<button type="button" data-action="cart-inc" data-id="' + esc(p.id) + '" aria-label="수량 늘리기" class="w-7 h-7 rounded-full border border-gray-200 text-gray-600 text-sm">+</button>' +
-        '</div></li>';
-    }).join('');
-
-    var searchAllUrl = 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' +
-      encodeURIComponent(items[0].searchQuery || items[0].name);
-
-    return '<ul class="px-4 overflow-y-auto flex-1">' + rows + '</ul>' +
-      '<div class="px-4 pt-3 pb-4 border-t border-gray-200 bg-white">' +
-        '<div class="flex justify-between text-sm mb-1"><span class="text-gray-500">정가 합계</span>' +
-          '<span class="text-gray-400 line-through">' + esc(E.formatWon(totals.listPrice)) + '</span></div>' +
-        '<div class="flex justify-between text-base font-bold mb-1"><span>결제 예상</span>' +
-          '<span class="text-gray-900">' + esc(E.formatWon(totals.price)) + '</span></div>' +
-        '<div class="flex justify-between text-[12px] font-bold text-red-500 mb-3"><span>할인 절약</span>' +
-          '<span>-' + esc(E.formatWon(totals.saved)) + '</span></div>' +
-        '<a href="' + esc(searchAllUrl) + '" target="_blank" rel="noopener noreferrer" ' +
-          'class="block text-center w-full py-3 bg-olive text-white text-sm font-bold rounded-xl mb-2">' +
-          '올리브영에서 이어서 담기' + OBBA.icon('external-link', 'w-3.5 h-3.5 inline-block align-[-2px] ml-1') + '</a>' +
-        '<div class="flex gap-2">' +
-          '<button type="button" data-action="cart-copy" class="flex-1 py-2.5 bg-gray-100 text-gray-700 text-[13px] font-bold rounded-xl">쇼핑 리스트 복사</button>' +
-          '<button type="button" data-action="cart-clear" class="py-2.5 px-4 bg-gray-100 text-gray-500 text-[13px] font-bold rounded-xl">비우기</button>' +
-        '</div>' +
-      '</div>';
-  }
-
-  /** 클립보드에 넣을 쇼핑 리스트 텍스트 (오프라인 매장에서 보기용) */
-  function cartAsText() {
-    var items = E.sortByRoutine(OBBA.Store.getCart().map(function (l) {
-      var p = OBBA.byId(l.id);
-      return p ? Object.assign({}, p, { qty: l.qty }) : null;
-    }).filter(Boolean));
-    var totals = OBBA.Store.cartTotals();
-    var lines = items.map(function (p) {
-      return '· [' + E.stepMeta(p.step).label + '] ' + p.brand + ' ' + p.name +
-        (p.qty > 1 ? ' x' + p.qty : '') + ' — ' + E.formatWon(p.price * p.qty);
-    });
-    return ['🛒 OBBA 쇼핑 리스트'].concat(lines)
-      .concat(['합계 ' + E.formatWon(totals.price) + ' (정가 대비 ' + E.formatWon(totals.saved) + ' 절약)'])
-      .join('\n');
-  }
-
   OBBA.Render = {
     esc: esc,
     botBubble: botBubble,
@@ -206,8 +136,6 @@ window.OBBA = window.OBBA || {};
     typingBubble: typingBubble,
     quickReplyButton: quickReplyButton,
     productCarousel: productCarousel,
-    comparisonCard: comparisonCard,
-    cartSheet: cartSheet,
-    cartAsText: cartAsText
+    comparisonCard: comparisonCard
   };
 })();

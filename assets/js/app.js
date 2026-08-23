@@ -12,10 +12,6 @@
   var quickReplies = document.getElementById('quick-reply-container');
   var input = document.getElementById('user-input');
   var sendBtn = document.getElementById('send-btn');
-  var cartBadge = document.getElementById('cart-badge');
-  var cartSheet = document.getElementById('cart-sheet');
-  var cartBody = document.getElementById('cart-sheet-body');
-  var backdrop = document.getElementById('sheet-backdrop');
   var profileChip = document.getElementById('profile-chip');
 
   var state = { step: 'situation', situationId: null, concernId: null, lastRec: null };
@@ -71,12 +67,8 @@
   }
 
   function syncChrome() {
-    var count = Store.cartCount();
-    cartBadge.textContent = count;
-    cartBadge.classList.toggle('hidden', count === 0);
     var label = profileLabel();
     profileChip.textContent = label ? label + ' 프로필' : '피부타입 설정';
-    if (cartSheet.classList.contains('open')) cartBody.innerHTML = R.cartSheet();
   }
 
   /* ---------------- 대화 흐름 ---------------- */
@@ -166,7 +158,6 @@
 
         var actions = [];
         if (rec.products.length >= 2) actions.push({ id: 'compare', label: '🤔 뭐가 더 좋을까? (비교)' });
-        actions.push({ id: 'cart', label: '🛒 장바구니 보기' });
         actions.push({ id: 'change-skin', label: '🧴 피부타입 바꾸기' });
         actions.push({ id: 'budget', label: '💰 예산으로 다시 고르기' });
         actions.push({ id: 'reset', label: '🔄 다른 고민 상담하기' });
@@ -176,7 +167,6 @@
 
   function onResultAction(item) {
     if (item.id === 'compare') { userSay(item.label); return showComparison(); }
-    if (item.id === 'cart') { openCart(); return; }
     if (item.id === 'change-skin') { userSay(item.label); return askSkinType(); }
     if (item.id === 'budget') {
       userSay(item.label);
@@ -208,14 +198,12 @@
       setQuickReplies([
         { id: 'light', label: '💦 가벼운 수분타입' },
         { id: 'rich', label: '🍯 쫀쫀한 영양타입' },
-        { id: 'cart', label: '🛒 장바구니 보기' },
         { id: 'reset', label: '🔄 다른 고민 상담하기' }
       ], onTexturePick);
     });
   }
 
   function onTexturePick(item) {
-    if (item.id === 'cart') { openCart(); return; }
     userSay(item.label);
     if (item.id === 'reset') return start();
     Store.patchProfile({ texturePref: item.id });
@@ -244,8 +232,6 @@
     input.value = '';
     userSay(text);
     clearQuickReplies();
-
-    if (text.indexOf('장바구니') !== -1 || text.indexOf('카트') !== -1) { openCart(); return; }
 
     var parsed = E.parse(text);
 
@@ -330,52 +316,15 @@
       });
   }
 
-  /* ---------------- 장바구니 시트 ---------------- */
-
-  function openCart() {
-    cartBody.innerHTML = R.cartSheet();
-    cartSheet.classList.add('open');
-    backdrop.classList.add('open');
-    cartSheet.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeCart() {
-    cartSheet.classList.remove('open');
-    backdrop.classList.remove('open');
-    cartSheet.setAttribute('aria-hidden', 'true');
-  }
-
-  function copyCart() {
-    var text = R.cartAsText();
-    var done = function () {
-      var btn = cartBody.querySelector('[data-action="cart-copy"]');
-      if (!btn) return;
-      var original = btn.textContent;
-      btn.textContent = '복사 완료!';
-      setTimeout(function () { btn.textContent = original; }, 1500);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, done);
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch (e) { /* 무시 */ }
-      document.body.removeChild(ta);
-      done();
-    }
-  }
-
   /* ---------------- 이벤트 위임 ---------------- */
 
   document.addEventListener('click', function (e) {
     var el = e.target.closest('[data-action]');
     if (!el) return;
     var action = el.getAttribute('data-action');
-    var id = el.getAttribute('data-id');
 
     if (action === 'qr') {
+      var id = el.getAttribute('data-id');
       var item = quickReplyItems.find(function (i) { return i.id === id; });
       if (item && quickReplyHandler) {
         var handler = quickReplyHandler;
@@ -384,34 +333,8 @@
       }
       return;
     }
-    if (action === 'add-cart') {
-      Store.addToCart(id);
-      syncChrome();
-      el.textContent = '담았어! 🛒';
-      el.classList.add('bg-olive');
-      setTimeout(function () {
-        el.textContent = '장바구니 담기';
-        el.classList.remove('bg-olive');
-      }, 1200);
-      return;
-    }
-    if (action === 'cart-open') { openCart(); return; }
-    if (action === 'cart-close') { closeCart(); return; }
-    if (action === 'cart-inc') { Store.addToCart(id); syncChrome(); return; }
-    if (action === 'cart-dec') {
-      var line = Store.getCart().find(function (l) { return l.id === id; });
-      Store.setQty(id, line ? line.qty - 1 : 0);
-      syncChrome();
-      return;
-    }
-    if (action === 'cart-clear') { Store.clearCart(); syncChrome(); return; }
-    if (action === 'cart-copy') { copyCart(); return; }
-    if (action === 'edit-profile') { closeCart(); askSkinType(); return; }
-    if (action === 'restart') { closeCart(); start(); return; }
-  });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && cartSheet.classList.contains('open')) closeCart();
+    if (action === 'edit-profile') { askSkinType(); return; }
+    if (action === 'restart') { start(); return; }
   });
 
   sendBtn.addEventListener('click', processInput);

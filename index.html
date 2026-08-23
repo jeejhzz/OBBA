@@ -37,17 +37,10 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-1 shrink-0">
-        <button type="button" data-action="cart-open" aria-label="장바구니 열기"
-                class="relative w-9 h-9 rounded-full text-gray-500 hover:text-olive hover:bg-gray-50 transition-colors">
-          <span data-icon="shopping-bag" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
-          <span id="cart-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
-        </button>
-        <button type="button" data-action="restart" aria-label="대화 처음부터 다시하기"
-                class="w-9 h-9 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-          <span data-icon="rotate-cw" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
-        </button>
-      </div>
+      <button type="button" data-action="restart" aria-label="대화 처음부터 다시하기"
+              class="shrink-0 w-9 h-9 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
+        <span data-icon="rotate-cw" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
+      </button>
     </header>
 
     <!-- 대화 -->
@@ -74,18 +67,6 @@
         <span data-icon="send" data-icon-class="w-[18px] h-[18px]"></span>
       </button>
     </footer>
-
-    <!-- 장바구니 바텀시트 -->
-    <div id="sheet-backdrop" class="sheet-backdrop" data-action="cart-close"></div>
-    <section id="cart-sheet" class="sheet" aria-hidden="true" aria-label="장바구니">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h2 class="text-sm font-bold text-gray-800">🛒 오빠가 담아준 리스트</h2>
-        <button type="button" data-action="cart-close" aria-label="닫기" class="w-8 h-8 text-gray-400 hover:text-gray-600">
-          <span data-icon="x" data-icon-class="w-[18px] h-[18px] mx-auto"></span>
-        </button>
-      </div>
-      <div id="cart-sheet-body" class="flex-1 flex flex-col overflow-hidden"></div>
-    </section>
 
   </div>
 
