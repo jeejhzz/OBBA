@@ -9,7 +9,9 @@
     "build:css": "tailwindcss -i assets/css/obba.src.css -o assets/css/obba.css --minify",
     "watch:css": "tailwindcss -i assets/css/obba.src.css -o assets/css/obba.css --watch",
     "serve": "http-server -p 8137 -c-1 .",
-    "test": "node tools/check-catalog.js"
+    "test": "node tools/check-catalog.js",
+    "build:artifact": "node tools/build-artifact.js",
+    "build": "npm run build:css && npm run build:artifact"
   },
   "repository": {
     "type": "git",
